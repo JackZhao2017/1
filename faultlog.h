@@ -9,8 +9,9 @@
 #define		BEYONDRESPAIR	"BEYONDRESPAIR"
 #define		UNKNOWN         "UNKNOWN      "
 
-#define     HWLOGFILEPATH 	"/home/root/adas/hwlog.log"
+//#define     HWLOGFILEPATH 	"/home/root/adas/hwlog.log"
 
+#define     HWLOGFILEPATH 	"./hwlog.log"
 //port name
 #define     CAMERA  		"/dev/video0 "
 #define 	UART 			"/dev/ttymxc1"
@@ -61,8 +62,6 @@ typedef struct{
 	int count;
 	int isflush;
 }FAULTLOG;
-
-//int addlogtofile(FAULTLOG *log);
 int addlogtofile(log_level level,module_type module,port_type port,char * des);
 void  flushlogtofile(module_type module,port_type port);
 #endif

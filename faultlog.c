@@ -6,7 +6,7 @@
 #include <sys/types.h>
 #include <time.h>
 #include "faultlog.h"
-#include "printlog.h"
+// #include "printlog.h"
 
 #define MAXLOGFILESIZE 4194304
 
@@ -21,6 +21,7 @@ static long long currenttime(){
 static int getfilesize(const char *file )
 {
 	struct stat buf;
+	memset(&buf,0,sizeof(buf));
 	stat(file,&buf); 
 	return	 buf.st_size;
 }
@@ -102,19 +103,6 @@ static char *getlog_module(int module)
 			return UNKNOWN;
 	}	
 }
-// int faultlogInit(void)
-// {
-// 	g_flog=fopen(HWLOGFILEPATH,"at+");
-// 	if(!g_flog){
-// 		printf("%s failed\n",__func__ );
-
-// 	}
-// }
-
-// void faultlogRelease(void)
-// {
-// 	fclose(g_flog);
-// }
 int pushlogtofile(const char *log){
 
 	if(getfilesize(HWLOGFILEPATH)>MAXLOGFILESIZE){
@@ -125,7 +113,6 @@ int pushlogtofile(const char *log){
 
 	
 	if(!g_flog){
-		err_msg("%s failed\n",__func__ );
 		return -1;
 	}
 
@@ -146,7 +133,6 @@ int addlogtofile(log_level level,module_type module,port_type port,char *des)
 	char content[128];
 	getlogtime(timer);
 	FAULTLOG faultlog;
-	int statuing=0;
 	if((g_faultlog.isflush==1)&&(g_faultlog.level==level)&&(g_faultlog.module==module)&&(g_faultlog.port==port)){
 			g_faultlog.level=level;
 			g_faultlog.module=module;
@@ -179,44 +165,36 @@ int addlogtofile(log_level level,module_type module,port_type port,char *des)
 		memset(Logcontent,0,sizeof(Logcontent));
 		memcpy(Logcontent,des,strlen(des));
 	}
-	if(faultlog.count>1){
-		snprintf(szLogcontent,sizeof(szLogcontent)-1,"[%s][%s][%s][%s][%04d][%s]\n",
-		      getlog_level(faultlog.level),getlog_module(faultlog.module),getlog_port(faultlog.port),timer,faultlog.count,content 
-			);
-
+	
+	if(faultlog.count>0){
+		snprintf(szLogcontent,sizeof(szLogcontent)-1,"[%04d]\n",faultlog.count);
 		pushlogtofile(szLogcontent);
 	}
 
-	if(statuing){
-		snprintf(szLogcontent,sizeof(szLogcontent)-1,"[%s][%s][%s][%s][*ing][%s]\n",
+	snprintf(szLogcontent,sizeof(szLogcontent)-1,"[%s][%s][%s][%s][%s]",
 		      getlog_level(g_faultlog.level),getlog_module(g_faultlog.module),getlog_port(g_faultlog.port),timer,Logcontent 
-			);
-	}else{
-		snprintf(szLogcontent,sizeof(szLogcontent)-1,"[%s][%s][%s][%s][%04d][%s]\n",
-		      getlog_level(g_faultlog.level),getlog_module(g_faultlog.module),getlog_port(g_faultlog.port),timer,g_faultlog.count,Logcontent 
-			);
-	}
+	);
 	pushlogtofile(szLogcontent);
-
-
 	return 0;
 }
 
 void  flushlogtofile(module_type module,port_type port)
 {
-	if(g_faultlog.isflush==0)
-		return ;
-	if(g_faultlog.count==1)
-		return ;
-	if(((g_faultlog.module!=module)||(g_faultlog.port!=port))&&module&&port)
-		return;
-	snprintf(szLogcontent,sizeof(szLogcontent)-1,"[%s][%s][%s][%s][%04d][%s]\n",
-		      getlog_level(g_faultlog.level),getlog_module(g_faultlog.module),getlog_port(g_faultlog.port),timer,g_faultlog.count,Logcontent 
-			);
-
+	snprintf(szLogcontent,sizeof(szLogcontent)-1,"[%04d]\n",g_faultlog.count);
 	pushlogtofile(szLogcontent);
 	memcpy(&g_faultlog,&g_faultlog,sizeof(g_faultlog));
 }
 
+// int main(int argc, char const *argv[])
+// {
+// 	int i=0;
+// 	for(i=0;i<10;i++){
+// 		addlogtofile(LOG_SERIOUS,MODULE_SYS,PORT_SYS,"message sendapp initialize failed");
+// 	}
 
+// 	addlogtofile(LOG_FATAL,MODULE_ADASCAPTURE,PORT_CAMERA,"VIDIOC_QBUF failed");
+
+// 	flushlogtofile(0,0);
+// 	return 0;
+// }
 
